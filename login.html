@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+ background-image: url('https://www.ppa.com/assets/images/ppmag_articles/201706-header_brownwood_mlp.jpg');
+ background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        .form {
+            margin-bottom: 20px;
+            display: none;
+        }
+        .form.active {
+            display: block;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .toggle-btn {
+            background-color: #5bc0de;
+            margin-top: 10px;
+        }
+        .toggle-btn:hover {
+            background-color: #31b0d5;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop>
+        <source src="videos/bg.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="container">
+        <div id="login" class="form active">
+            <h2>Pricewise Login</h2>
+            <input type="text" id="loginUsername" placeholder="Enter username" required>
+            <input type="password" id="loginPassword" placeholder="Enter password" required>
+            <button onclick="login()">Login</button>
+            <button class="toggle-btn" onclick="toggleForms()">Go to Register</button>
+        </div>
+
+        <div id="register" class="form">
+            <h2>Register</h2>
+            <input type="text" id="regUsername" placeholder="Enter username" required>
+            <input type="password" id="regPassword" placeholder="Enter password" required>
+            <button onclick="register()">Register</button>
+            <button class="toggle-btn" onclick="toggleForms()">Go to Login</button>
+        </div>
+    </div>
+
+    <script>
+        const predefinedUsers = {
+            'user1': 'password1',
+            'user2': 'password2',
+            'user3': 'password3'
+        };
+
+        function saveUsersToLocalStorage(users) {
+            localStorage.setItem('registeredUsers', JSON.stringify(users));
+        }
+
+        function getUsersFromLocalStorage() {
+            const users = localStorage.getItem('registeredUsers');
+            return users ? JSON.parse(users) : {};
+        }
+
+        function register() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+
+            if (username && password) {
+                const registeredUsers = getUsersFromLocalStorage();
+                registeredUsers[username] = password;
+                saveUsersToLocalStorage(registeredUsers);
+                
+                alert('Registered successfully. Now you can log in.');
+
+                toggleForms();
+            } else {
+                alert('Please fill out all fields.');
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const registeredUsers = getUsersFromLocalStorage();
+
+            if ((registeredUsers[username] && registeredUsers[username] === password) ||
+                (predefinedUsers[username] && predefinedUsers[username] === password)) {
+                alert('Login successful!');
+                window.location.href = 'index.html';
+            } else {
+                alert('Invalid username or password.');
+            }
+        }
+
+        function toggleForms() {
+            const loginForm = document.getElementById('login');
+            const registerForm = document.getElementById('register');
+            
+            loginForm.classList.toggle('active');
+            registerForm.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
