@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Comparison Tool</title>
+    <script src="data.js"></script> <!-- Include your data.js file -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f9fc;
+            color: #333;
+        }
+        .search-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        #searchInput {
+            padding: 12px;
+            width: 400px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .results {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+        }
+        .price-box {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .chart-container {
+            margin: 40px 0;
+        }
+        #errorMessage {
+            color: red;
+            font-size: 36px;
+            text-align: center;
+            display: none;
+        }
+        #alertBox {
+            display: none;
+            margin-top: 40px;
+        }
+        .chart-heading {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .chart-wrapper {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: column;
+            align-items: center;
+        }
+        video.background-video {
+            position: fixed; /* Make the video fixed */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure the video covers the full screen */
+            z-index: -1; /* Ensure it's behind the content */
+        }
+    </style>
+</head>
+
+<body>
+    <video class="background-video" autoplay muted loop>
+        <source src="ss.MP4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    
+    <div class="search-container">
+        <h1>Price Comparison Tool</h1>
+        <input type="text" id="searchInput" placeholder="Enter product name...">
+        <button onclick="searchProduct()">Search</button>
+    </div>
+
+    <div id="errorMessage">404 ERROR! PRODUCT NOT FOUND</div>
+
+    <div class="results" id="results" style="display: none;">
+        <div class="price-box" id="amazonPrice"></div>
+        <div class="price-box" id="flipkartPrice"></div>
+    </div>
+
+    <!-- Chart container, initially hidden -->
+    <div class="chart-container chart-wrapper" id="chartContainer" style="display: none;">
+        <!-- Pie chart -->
+        <div class="chart-heading">Current Price Comparison</div>
+        <canvas id="pricePieChart"></canvas> <!-- Pie chart for price comparison -->
+
+        <!-- Line chart -->
+        <div class="chart-heading">Price History (Last 5 Months)</div>
+        <canvas id="priceChart"></canvas> <!-- Line chart for price history -->
+
+        <!-- Predicted Prices for the next 4 months -->
+        <div class="chart-heading">Predicted Price for the Next 4 Months</div>
+        <canvas id="predictedPriceChart"></canvas> <!-- Bar chart for predicted prices -->
+    </div>
+
+    <div id="alertBox">
+        <h3>Set Price Drop Alert for <span id="alertProductName"></span></h3>
+        <input type="number" id="priceAlertInput" placeholder="Set price threshold">
+        <button onclick="setPriceAlert()">Set Alert</button>
+    </div>
+
+    <script>
+        let priceAlert = null; // Store the price alert threshold
+        let currentProduct = ''; // Store the name of the currently searched product
+        let priceCharts = {}; // To store chart instances and destroy them before creating new ones
+
+        function searchProduct() {
+            const product = document.getElementById('searchInput').value.trim();
+            const resultsContainer = document.getElementById('results');
+            const errorMessage = document.getElementById('errorMessage');
+            const alertBox = document.getElementById('alertBox');
+            const chartContainer = document.getElementById('chartContainer');  // Reference to the chart container
+
+            // Hide previous results and error message
+            resultsContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            alertBox.style.display = 'none';
+
+            // Hide all chart containers initially
+            chartContainer.style.display = 'none';  // Initially hide chart container
+
+            if (!product || !productData[product]) {
+                // Show error message if product is not found
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            currentProduct = product;
+            const productInfo = productData[product];
+            resultsContainer.style.display = 'flex';
+
+            // Update current prices
+            document.getElementById('amazonPrice').innerHTML = `
+                <h3>Amandroid</h3>
+                <p>Current Price: ₹${productInfo.currentPrices.amazon}</p>
+            `;
+            document.getElementById('flipkartPrice').innerHTML = `
+                <h3>Flipazonet</h3>
+                <p>Current Price: ₹${productInfo.currentPrices.flipkart}</p>
+            `;
+
+            // Show the charts
+            chartContainer.style.display = 'block';  // Show chart container only after search
+
+            // Display price graph
+            updatePriceChart(productInfo.monthlyPrices);
+
+            // Show the price alert box only after a product search
+            document.getElementById('alertProductName').innerText = currentProduct;
+            alertBox.style.display = 'block';
+        }
+
+        function setPriceAlert() {
+            priceAlert = parseFloat(document.getElementById('priceAlertInput').value);
+            if (isNaN(priceAlert) || priceAlert <= 0) {
+                alert("Please enter a valid price!");
+                return;
+            }
+            alert(`Price drop alert set for ₹${priceAlert} for ${currentProduct}`);
+        }
+
+        function checkPriceAlert(currentPrices) {
+            if (priceAlert && (currentPrices.amazon <= priceAlert || currentPrices.flipkart <= priceAlert)) {
+                alert("Price drop alert! The price is now below your set threshold!");
+            }
+        }
+
+        function updatePriceChart(monthlyPrices) {
+            // Destroy existing charts to prevent overlapping charts when searching for a new product
+            if (priceCharts.lineChart) {
+                priceCharts.lineChart.destroy();
+            }
+            if (priceCharts.pieChart) {
+                priceCharts.pieChart.destroy();
+            }
+            if (priceCharts.predictionChart) {
+                priceCharts.predictionChart.destroy();
+            }
+
+            // Line chart for price history (5 months)
+            const ctxLine = document.getElementById('priceChart').getContext('2d');
+            priceCharts.lineChart = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: ['5 Months Ago', '4 Months Ago', '3 Months Ago', '2 Months Ago', 'Last Month'],
+                    datasets: [
+                        {
+                            label: 'Amandroid',
+                            data: monthlyPrices.amazon,
+                            borderColor: 'blue',
+                            fill: false
+                        },
+                        {
+                            label: 'Flipazon',
+                            data: monthlyPrices.flipkart,
+                            borderColor: 'green',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Price History (Last 5 Months)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+
+            // Pie chart for current price comparison (latest prices)
+            const ctxPie = document.getElementById('pricePieChart').getContext('2d');
+            priceCharts.pieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Amadroid', 'Flipazon'],
+                    datasets: [{
+                        label: 'Price Comparison',
+                        data: [
+                            monthlyPrices.amazon[monthlyPrices.amazon.length - 1], // Latest price from Amazon
+                            monthlyPrices.flipkart[monthlyPrices.flipkart.length - 1] // Latest price from Flipkart
+                        ],
+                        backgroundColor: ['blue', 'green']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Price Distribution (Latest Price)'
+                        }
+                    }
+                }
+            });
+
+            // Predict next 4 months' prices (using linear regression)
+            const predictedPrices = predictPrices(monthlyPrices);
+
+            // Bar chart for predicted prices for next 4 months
+            const ctxBar = document.getElementById('predictedPriceChart').getContext('2d');
+            priceCharts.predictionChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Next Month', '2nd Month', '3rd Month', '4th Month'],
+                    datasets: [
+                        {
+                            label: 'Amandroid',
+                            data: predictedPrices.amazon,
+                            backgroundColor: 'blue'
+                        },
+                        {
+                            label: ' Flipazon',
+                            data: predictedPrices.flipkart,
+                            backgroundColor: 'green'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Predicted Prices for Next 4 Months'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+
+            // Check if price alert condition is met
+            checkPriceAlert({
+                amazon: monthlyPrices.amazon[monthlyPrices.amazon.length - 1],
+                flipkart: monthlyPrices.flipkart[monthlyPrices.flipkart.length - 1]
+            });
+        }
+
+        function predictPrices(monthlyPrices) {
+            const amazonPrices = monthlyPrices.amazon;
+            const flipkartPrices = monthlyPrices.flipkart;
+
+            // Perform linear regression for better prediction
+            const amazonTrend = linearRegression(amazonPrices);
+            const flipkartTrend = linearRegression(flipkartPrices);
+
+            // Predict next 4 months based on the linear regression
+            const predictedAmazonPrices = [];
+            const predictedFlipkartPrices = [];
+
+            for (let i = 1; i <= 4; i++) {
+                predictedAmazonPrices.push(amazonPrices[amazonPrices.length - 1] + amazonTrend.slope * i);
+                predictedFlipkartPrices.push(flipkartPrices[flipkartPrices.length - 1] + flipkartTrend.slope * i);
+            }
+
+            return {
+                amazon: predictedAmazonPrices,
+                flipkart: predictedFlipkartPrices
+            };
+        }
+
+        // Linear regression to find the best fit line (slope)
+        function linearRegression(prices) {
+            const n = prices.length;
+            const x = Array.from({ length: n }, (_, i) => i); // Months as x values
+            const y = prices; // Prices as y values
+
+            const sumX = x.reduce((acc, val) => acc + val, 0);
+            const sumY = y.reduce((acc, val) => acc + val, 0);
+            const sumXY = x.reduce((acc, val, idx) => acc + val * y[idx], 0);
+            const sumX2 = x.reduce((acc, val) => acc + val * val, 0);
+
+            // Calculate slope (m) and intercept (b)
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            return { slope, intercept };
+        }
+    </script>
+</body>
+</html>
