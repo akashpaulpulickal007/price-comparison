@@ -73,14 +73,115 @@
       
      
 
+footer {
+  background-color: #f8f8f8;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  margin-top: auto;
+ width: 95%; /* Ensures it spans the full width of the page */
+  
+}
 
-      
+footer div {
+  margin-bottom: 10px;
+}
+
+footer h3, footer h4 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+footer ul {
+  list-style: none;
+  padding: 0;
+}
+
+footer ul li {
+  margin-bottom: 5px;
+}
+
+footer ul li a {
+  text-decoration: none;
+  color: #007BFF;
+}
+
+footer ul li a:hover {
+  text-decoration: underline;
+}
+
+footer p {
+  margin: 0;
+  color: #666;
+}
+
+footer .copyright {
+  text-align: center;
+  margin-top: 10px;
+  color: #666;
+}
+
+footer .flex-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+footer .flex-container div {
+  flex: 1;
+  margin: 0 10px;
+  min-width: 150px;
+}
+
+
+      .header {
+    background-color: #333; /* Dark gray background */
+    padding: 15px 20px;
+    border-bottom: 2px solid #007BFF; /* Blue accent border */
+}
+
+/* Navigation Styles */
+.nav {
+    display: flex;
+    justify-content: center; /* Center align the navigation */
+}
+
+/* Navigation List Styles */
+.nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px; /* Add spacing between navigation items */
+}
+
+/* Navigation Links Styles */
+.nav-list li a {
+    text-decoration: none;
+    color: #fff; /* White text color */
+    font-size: 16px;
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+/* Hover Effect */
+.nav-list li a:hover {
+    color: #FFA500; /* Orange text on hover */
+}
+
 
     </style>
 </head>
 
 <body>
-    
+    <header class="header">
+        <nav class="nav">
+            <ul class="nav-list">
+                <li><a href="https://akashpaulpulickal007.github.io/price-comparison/index.html">Home</a></li>
+                <li><a href="#price">Price</a></li>
+                <li><a href="#watchlist">Watchlist</a></li>
+            </ul>
+        </nav>
+    </header>
     
     <div class="search-container">
         <h1>Price Comparison Tool</h1>
@@ -346,4 +447,44 @@
         }
     </script>
 </body>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<footer style="background-color: #f8f8f8; padding: 20px;">
+  <div style="display: flex; justify-content: space-between;">
+    <div>
+      <h3>PriceWise</h3>
+      <p>Compare prices across multiple retailers to find the best deals on your favorite products.</p>
+    </div>
+    <div>
+      <h4>FEATURES</h4>
+      <ul>
+        <li>Price Comparison</li>
+        <li>Price Alerts</li>
+        <li>Price History</li>
+      </ul>
+    </div>
+    <div>
+      <h4>COMPANY</h4>
+      <ul>
+        <li><a href="about.html">About Us</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 10px;">
+    <p>&copy; 2025 PriceWise. All rights reserved.</p>
+  </div>
+</footer>
+
 </html>
